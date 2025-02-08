@@ -66,8 +66,8 @@ export default function Home() {
       setAngularVelocity(_angularVelocity)
 
       const message = JSON.stringify({
-        linearVelocity: _linearVelocity,
-        angularVelocity: _angularVelocity,
+        linear_velocity: _linearVelocity,
+        angular_velocity: _angularVelocity,
       })
       client.current?.publish(TOPIC, message)
 
