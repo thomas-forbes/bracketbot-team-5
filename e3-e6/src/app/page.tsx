@@ -1,6 +1,7 @@
 'use client'
 import mqtt from 'mqtt'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useInterval } from 'react-use'
 
 const TOPIC = 'robot/drive'
 
@@ -14,7 +15,13 @@ export default function Home() {
   const stopRef = useRef(false)
 
   const [linearVelocity, setLinearVelocity] = useState(0)
-  const [angularVelocity, setAngularVelocity] = useState(0)
+  // const [angularVelocity, setAngularVelocity] = useState(0)
+  const [angularVelocityQueue, setAngularVelocityQueue] = useState<
+    {
+      velocity: number
+      timestamp: number
+    }[]
+  >([])
 
   const play = useCallback(async () => {
     stopRef.current = false
@@ -29,60 +36,85 @@ export default function Home() {
     }
   }, [recording])
 
+  const [angularVelocityMaxTimeMs, setAngularVelocityMaxTimeMs] = useState(1000)
+  const calculateAngularVelocity = useCallback(() => {
+    const currentTime = Date.now()
+    const velocity = angularVelocityQueue.reduce(
+      (acc, { velocity, timestamp }) => {
+        const deltaTime = currentTime - timestamp
+        if (deltaTime > angularVelocityMaxTimeMs) return acc
+        return acc + velocity * (1 - deltaTime / angularVelocityMaxTimeMs)
+      },
+      0,
+    )
+    return velocity
+  }, [angularVelocityMaxTimeMs, angularVelocityQueue])
+
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
       const key = event.key
-      // const keyToMessage: Record<string, string> = {
-      //   w: 'forward',
-      //   a: 'left',
-      //   s: 'back',
-      //   d: 'right',
-      //   e: 'stop',
-      // }
-      // const message = keyToMessage[key]
-      // if (!message) return
+
       let _linearVelocity = linearVelocity
-      let _angularVelocity = angularVelocity
+      // let _angularVelocity = angularVelocity
       if (key === 'w') {
         _linearVelocity -= 0.2
       } else if (key === 's') {
         _linearVelocity += 0.2
       } else if (key === 'a') {
-        _angularVelocity += 0.1
+        // _angularVelocity += 0.1
+        setAngularVelocityQueue((prev) => [
+          ...prev,
+          { timestamp: Date.now(), velocity: 0.1 },
+        ])
       } else if (key === 'd') {
-        _angularVelocity -= 0.1
-      } else if (key === 'e') {
+        // _angularVelocity -= 0.1
+        setAngularVelocityQueue((prev) => [
+          ...prev,
+          { timestamp: Date.now(), velocity: -0.1 },
+        ])
+      } else if (key === ' ') {
         _linearVelocity = 0
-        _angularVelocity = 0
-      }
-      if (
-        _linearVelocity === linearVelocity &&
-        _angularVelocity === angularVelocity
-      )
+        setAngularVelocityQueue([])
+        // _angularVelocity = 0
+      } else if (key === 'e') {
+        // _angularVelocity = 0
+        setAngularVelocityQueue([])
+      } else {
         return
-      console.log(key, _linearVelocity, _angularVelocity)
+      }
 
       setLinearVelocity(_linearVelocity)
-      setAngularVelocity(_angularVelocity)
-
-      const message = JSON.stringify({
-        linear_velocity: _linearVelocity,
-        angular_velocity: _angularVelocity,
-      })
-      client.current?.publish(TOPIC, message)
-
-      if (isRecording) {
-        const currentTime = Date.now()
-        const delay = previousTime.current
-          ? currentTime - previousTime.current
-          : 0
-        setRecording((prev) => [...prev, { message, delay }])
-        console.log('recorded', message, delay)
-        previousTime.current = currentTime
-      }
+      // setAngularVelocity(_angularVelocity)
     },
-    [angularVelocity, isRecording, linearVelocity],
+    [linearVelocity],
   )
+
+  const lastMessageRef = useRef<string | null>(null)
+  const sendMessage = useCallback(() => {
+    const angularVelocity = calculateAngularVelocity()
+
+    const message = JSON.stringify({
+      linear_velocity: linearVelocity,
+      angular_velocity: angularVelocity,
+    })
+    if (message === lastMessageRef.current) return
+    lastMessageRef.current = message
+    console.log(linearVelocity, angularVelocity)
+
+    client.current?.publish(TOPIC, message)
+
+    if (isRecording) {
+      const currentTime = Date.now()
+      const delay = previousTime.current
+        ? currentTime - previousTime.current
+        : 0
+      setRecording((prev) => [...prev, { message, delay }])
+      console.log('recorded', message, delay)
+      previousTime.current = currentTime
+    }
+  }, [calculateAngularVelocity, isRecording, linearVelocity])
+
+  useInterval(sendMessage, 100)
 
   useEffect(() => {
     document.addEventListener('keydown', handleKey)
@@ -119,6 +151,12 @@ export default function Home() {
 
   return (
     <div className="h-screen w-full bg-black flex flex-col justify-center items-center gap-10">
+      <input
+        type="number"
+        className="bg-black"
+        value={angularVelocityMaxTimeMs}
+        onChange={(e) => setAngularVelocityMaxTimeMs(Number(e.target.value))}
+      />
       <button onClick={() => setIsRecording((prev) => !prev)}>
         {isRecording ? 'stop' : 'record'}
       </button>
@@ -146,6 +184,8 @@ export default function Home() {
       >
         connect
       </button>
+      {/* <p>{linearVelocity}</p> */}
+      {/* <p>{calculateAngularVelocity()}</p> */}
     </div>
   )
 }
