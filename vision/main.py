@@ -1,9 +1,12 @@
 import json
 import time
 
+import cv2
 import dotenv
 from groq import Groq
 from openai import OpenAI
+
+from vision.camera import USBCamera
 
 # from drive import set_velocity
 
@@ -86,4 +89,18 @@ def gpt(url):
     set_velocity(0, 0)
 
 
-gpt("https://thomasforbes.com/test.png")
+# gpt("https://thomasforbes.com/test.png")
+
+
+def take_photo():
+    camera = USBCamera(index=0)
+
+    print("Using USB Camera")
+    get_frame = camera.get_frame
+    frame = get_frame()
+    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    cv2.imwrite("photo.png", frame)
+
+
+take_photo()
