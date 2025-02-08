@@ -112,6 +112,11 @@ export default function Home() {
           </div>
         ))}
       </div>
+      <button
+        onClick={() => mqtt.connect(`ws://orange@orange-orange.local:9001`)}
+      >
+        connect
+      </button>
     </div>
   )
 }
