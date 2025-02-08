@@ -63,18 +63,24 @@ export default function Home() {
 
   useEffect(() => {
     // Extract username from URL or use hostname
-    const hostname = window.location.hostname // e.g., "beige-desktop.local" or "192.168.1.100"
-    const username = hostname.split('-')[0] // e.g., "beige" or use full hostname if no hyphen
+    // const hostname = window.location.hostname // e.g., "beige-desktop.local" or "192.168.1.100"
+    // const username = hostname.split('-')[0] // e.g., "beige" or use full hostname if no hyphen
+    // const username = 'orange'
 
     // MQTT client setup - use the extracted username or full hostname
-    const mqttHost = username.includes('.')
-      ? hostname
-      : `${username}-desktop.local`
+    // const mqttHost = username.includes('.')
+    //   ? hostname
+    //   : `${username}-desktop.local`
+    const mqttHost = 'orange@orange-orange.local'
     client.current = mqtt.connect(`ws://${mqttHost}:9001`)
 
-    // client.current.on('connect', function () {})
+    client.current.on('connect', function () {
+      console.log('connected')
+    })
 
-    // client.current.on('error', function (error) {})
+    client.current.on('error', function (error) {
+      console.error('error', error)
+    })
 
     client.current.on('message', function (topic, message) {
       console.log('Message received:', message.toString())
