@@ -89,9 +89,6 @@ def gpt(url):
     set_velocity(0, 0)
 
 
-# gpt("https://thomasforbes.com/test.png")
-
-
 def take_photo():
     camera = USBCamera(index=0)
 
@@ -103,4 +100,15 @@ def take_photo():
     cv2.imwrite("photo.png", frame)
 
 
-take_photo()
+def upload_photo(path):
+    pass
+
+
+def main():
+    take_photo()
+    url = upload_photo("photo.png")
+    gpt(url)
+
+
+if __name__ == "__main__":
+    main()
