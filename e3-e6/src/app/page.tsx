@@ -1,101 +1,110 @@
-import Image from "next/image";
+'use client'
+import mqtt from 'mqtt'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+const TOPIC = 'robot/drive'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const client = useRef<mqtt.MqttClient | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recording, setRecording] = useState<
+    { message: string; delay: number }[]
+  >([])
+  const previousTime = useRef<number | null>(null)
+  const stopRef = useRef(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  const play = useCallback(async () => {
+    stopRef.current = false
+    for (const { message, delay } of recording) {
+      console.log(message, delay)
+
+      await new Promise((resolve) => setTimeout(resolve, delay))
+      client.current?.publish(TOPIC, message)
+      console.log('published', message)
+
+      if (stopRef.current) break
+    }
+  }, [recording])
+
+  const handleKey = useCallback(
+    (fuck: KeyboardEvent) => {
+      const key = fuck.key
+      const keyToMessage: Record<string, string> = {
+        w: 'forward',
+        a: 'left',
+        s: 'backward',
+        d: 'right',
+      }
+      const message = keyToMessage[key]
+      if (!message) return
+      client.current?.publish(TOPIC, message)
+
+      client.current?.publish(TOPIC, 'forward')
+
+      if (isRecording) {
+        const currentTime = Date.now()
+        const delay = previousTime.current
+          ? currentTime - previousTime.current
+          : 0
+        setRecording((prev) => [...prev, { message, delay }])
+        console.log('recorded', message, delay)
+        previousTime.current = currentTime
+      }
+    },
+    [isRecording],
+  )
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [handleKey])
+
+  useEffect(() => {
+    // Extract username from URL or use hostname
+    const hostname = window.location.hostname // e.g., "beige-desktop.local" or "192.168.1.100"
+    const username = hostname.split('-')[0] // e.g., "beige" or use full hostname if no hyphen
+
+    // MQTT client setup - use the extracted username or full hostname
+    const mqttHost = username.includes('.')
+      ? hostname
+      : `${username}-desktop.local`
+    client.current = mqtt.connect(`ws://${mqttHost}:9001`)
+
+    // client.current.on('connect', function () {})
+
+    // client.current.on('error', function (error) {})
+
+    client.current.on('message', function (topic, message) {
+      console.log('Message received:', message.toString())
+    })
+  }, [])
+
+  return (
+    <div className="h-screen w-full bg-black flex flex-col justify-center items-center gap-10">
+      <button onClick={() => setIsRecording((prev) => !prev)}>
+        {isRecording ? 'stop' : 'record'}
+      </button>
+      <button onClick={play}>play</button>
+      <button onClick={() => (stopRef.current = true)}>stop</button>
+      <button
+        onClick={() => {
+          setRecording([])
+          setIsRecording(false)
+          stopRef.current = true
+          previousTime.current = null
+        }}
+      >
+        clear
+      </button>
+      <div className="flex flex-row gap-2 border border-white p-2 rounded-md max-w-md overflow-x-auto">
+        {recording.map(({ message, delay }, index) => (
+          <div key={index}>
+            {message} {(delay / 1000).toFixed(2)}s
+          </div>
+        ))}
+      </div>
     </div>
-  );
+  )
 }
