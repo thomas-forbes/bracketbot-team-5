@@ -13,6 +13,9 @@ export default function Home() {
   const previousTime = useRef<number | null>(null)
   const stopRef = useRef(false)
 
+  const [linearVelocity, setLinearVelocity] = useState(0)
+  const [angularVelocity, setAngularVelocity] = useState(0)
+
   const play = useCallback(async () => {
     stopRef.current = false
     for (const { message, delay } of recording) {
@@ -27,17 +30,38 @@ export default function Home() {
   }, [recording])
 
   const handleKey = useCallback(
-    (fuck: KeyboardEvent) => {
-      const key = fuck.key
-      const keyToMessage: Record<string, string> = {
-        w: 'forward',
-        a: 'left',
-        s: 'back',
-        d: 'right',
-        e: 'stop',
+    (event: KeyboardEvent) => {
+      const key = event.key
+      // const keyToMessage: Record<string, string> = {
+      //   w: 'forward',
+      //   a: 'left',
+      //   s: 'back',
+      //   d: 'right',
+      //   e: 'stop',
+      // }
+      // const message = keyToMessage[key]
+      // if (!message) return
+      let _linearVelocity = linearVelocity
+      let _angularVelocity = angularVelocity
+      if (key === 'w') {
+        _linearVelocity += 0.2
+      } else if (key === 's') {
+        _linearVelocity -= 0.2
+      } else if (key === 'a') {
+        _angularVelocity += 0.1
+      } else if (key === 'd') {
+        _angularVelocity -= 0.1
+      } else if (key === 'e') {
+        _linearVelocity = 0
+        _angularVelocity = 0
       }
-      const message = keyToMessage[key]
-      if (!message) return
+      setLinearVelocity(_linearVelocity)
+      setAngularVelocity(_angularVelocity)
+
+      const message = JSON.stringify({
+        linearVelocity: _linearVelocity,
+        angularVelocity: _angularVelocity,
+      })
       client.current?.publish(TOPIC, message)
 
       if (isRecording) {
@@ -50,7 +74,7 @@ export default function Home() {
         previousTime.current = currentTime
       }
     },
-    [isRecording],
+    [angularVelocity, isRecording, linearVelocity],
   )
 
   useEffect(() => {
