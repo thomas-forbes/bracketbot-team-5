@@ -48,9 +48,9 @@ export default function Home() {
       } else if (key === 's') {
         _linearVelocity += 0.2
       } else if (key === 'a') {
-        _angularVelocity -= 0.1
-      } else if (key === 'd') {
         _angularVelocity += 0.1
+      } else if (key === 'd') {
+        _angularVelocity -= 0.1
       } else if (key === 'e') {
         _linearVelocity = 0
         _angularVelocity = 0
