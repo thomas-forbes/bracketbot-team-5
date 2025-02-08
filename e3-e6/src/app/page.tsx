@@ -40,8 +40,6 @@ export default function Home() {
       if (!message) return
       client.current?.publish(TOPIC, message)
 
-      client.current?.publish(TOPIC, 'forward')
-
       if (isRecording) {
         const currentTime = Date.now()
         const delay = previousTime.current
