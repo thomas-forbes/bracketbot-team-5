@@ -55,6 +55,13 @@ export default function Home() {
         _linearVelocity = 0
         _angularVelocity = 0
       }
+      if (
+        _linearVelocity === linearVelocity &&
+        _angularVelocity === angularVelocity
+      )
+        return
+      console.log(key, _linearVelocity, _angularVelocity)
+
       setLinearVelocity(_linearVelocity)
       setAngularVelocity(_angularVelocity)
 
