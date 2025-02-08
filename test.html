@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MQTT Drive Control</title>
+    <script src="./mqtt.js"></script>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        width: 100%;
+        background-color: black;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-family: sans-serif;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 5px;
+        cursor: pointer;
+      }
+      #recordings {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        border: 1px solid white;
+        padding: 10px;
+        border-radius: 4px;
+        max-width: 80%;
+        overflow-x: auto;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="recordButton">record</button>
+    <button id="playButton">play</button>
+    <button id="stopButton">stop</button>
+    <button id="clearButton">clear</button>
+    <div id="recordings"></div>
+
+    <script>
+      // Define global variables
+      const TOPIC = 'robot/drive'
+      let client = null
+      let isRecording = false
+      let recording = []
+      let previousTime = null
+      let stopFlag = false
+
+      // Connect to the MQTT broker
+      const mqttHost = 'orange@orange-orange.local'
+      client = mqtt.connect('ws://' + mqttHost + ':9001')
+
+      client.on('connect', function () {
+        console.log('connected')
+      })
+
+      client.on('error', function (error) {
+        console.error('error', error)
+      })
+
+      client.on('message', function (topic, message) {
+        console.log('Message received:', message.toString())
+      })
+
+      // Update the display of recorded events
+      function updateRecordingDisplay() {
+        const recordingsDiv = document.getElementById('recordings')
+        recordingsDiv.innerHTML = ''
+        recording.forEach(function (item) {
+          const itemDiv = document.createElement('div')
+          const seconds = (item.delay / 1000).toFixed(2)
+          itemDiv.textContent = item.message + ' ' + seconds + 's'
+          recordingsDiv.appendChild(itemDiv)
+        })
+      }
+
+      // Update the text of the record button
+      function updateRecordButton() {
+        const recordButton = document.getElementById('recordButton')
+        recordButton.textContent = isRecording ? 'stop' : 'record'
+      }
+
+      // Play the recorded messages with the specified delays
+      async function playRecording() {
+        stopFlag = false
+        for (let i = 0; i < recording.length; i++) {
+          const item = recording[i]
+          console.log(item.message, item.delay)
+          await new Promise(function (resolve) {
+            setTimeout(resolve, item.delay)
+          })
+          if (client && client.publish) {
+            client.publish(TOPIC, item.message)
+          }
+          console.log('published', item.message)
+          if (stopFlag) {
+            break
+          }
+        }
+      }
+
+      // Handle keydown events to send messages and record them
+      function handleKey(event) {
+        const key = event.key
+        const keyToMessage = {
+          w: 'forward',
+          a: 'left',
+          s: 'backward',
+          d: 'right',
+        }
+        const message = keyToMessage[key]
+        if (!message) {
+          return
+        }
+        if (client && client.publish) {
+          client.publish(TOPIC, message)
+          client.publish(TOPIC, 'forward')
+        }
+        if (isRecording) {
+          const currentTime = Date.now()
+          const delay = previousTime ? currentTime - previousTime : 0
+          recording.push({ message: message, delay: delay })
+          console.log('recorded', message, delay)
+          previousTime = currentTime
+          updateRecordingDisplay()
+        }
+      }
+
+      // Attach the keydown event listener
+      document.addEventListener('keydown', handleKey)
+
+      // Set up button event listeners once the page content has loaded
+      document.addEventListener('DOMContentLoaded', function () {
+        const recordButton = document.getElementById('recordButton')
+        const playButton = document.getElementById('playButton')
+        const stopButton = document.getElementById('stopButton')
+        const clearButton = document.getElementById('clearButton')
+
+        recordButton.addEventListener('click', function () {
+          isRecording = !isRecording
+          if (isRecording) {
+            previousTime = Date.now()
+          }
+          updateRecordButton()
+        })
+
+        playButton.addEventListener('click', function () {
+          playRecording()
+        })
+
+        stopButton.addEventListener('click', function () {
+          stopFlag = true
+        })
+
+        clearButton.addEventListener('click', function () {
+          recording = []
+          isRecording = false
+          stopFlag = true
+          previousTime = null
+          updateRecordButton()
+          updateRecordingDisplay()
+        })
+      })
+    </script>
+  </body>
+</html>

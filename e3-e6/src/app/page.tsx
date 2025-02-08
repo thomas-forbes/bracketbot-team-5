@@ -32,8 +32,9 @@ export default function Home() {
       const keyToMessage: Record<string, string> = {
         w: 'forward',
         a: 'left',
-        s: 'backward',
+        s: 'back',
         d: 'right',
+        e: 'stop',
       }
       const message = keyToMessage[key]
       if (!message) return
