@@ -1,64 +1,73 @@
-# from drive import on_command
-import base64
+import json
+import time
 
 import dotenv
 from openai import OpenAI
+
+# from drive import set_velocity
+
+
+# mock
+def set_velocity(linear_velocity, angular_velocity):
+    print(f"Setting velocity to {linear_velocity} m/s and {angular_velocity} rad/s")
+
 
 dotenv.load_dotenv()
 
 client = OpenAI()
 
+system_message = {
+    "role": "system",
+    "content": """You are a helpful assistant that returns a structured response to control a robot to head in a straight line and avoid obstacles. When going around obstacles return to your original path.
 
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
+The robot has two wheels and can move forward, back, and turn. Go slow. Less than 1 m/s and less than 1 rad/s. Go less than 3m per request.
 
-
-image_path = "test.png"
-base64_image = encode_image(image_path)
-
-functions = [
-    {
-        "name": "forward",
-        "description": "Move the robot forward for x seconds",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "distance": {
-                    "type": "number",
-                    "description": "The distance to move forward",
-                },
-            },
-        },
-    }
+Output a JSON object with the following fields:
+- linear_velocity: float (m/s)
+- angular_velocity: float (rad/s)
+- duration: int (centiseconds)
+""",
+}
+messages = [
+    system_message,
 ]
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
+
+
+def gpt(url):
+    messages.append(
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": "How far away is the wall away in meters?"},
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/png;base64,{base64_image}",
-                        "detail": "low",
+                        "url": url,
                     },
                 },
             ],
-        }
-    ],
-    # functions=functions,
-    # function_call="auto",
-    max_tokens=300,
-)
+        },
+    )
 
-print(response.choices[0].message.content)
+    print("Sending request to GPT")
+    response = client.chat.completions.create(
+        model="o1",
+        messages=messages,
+    )
+    messages.append(response.choices[0].message)
+
+    text = response.choices[0].message.content
+
+    action = json.loads(text)
+    linear_velocity = action["linear_velocity"]
+    angular_velocity = action["angular_velocity"]
+    duration = action["duration"]
+
+    if linear_velocity is None and angular_velocity is None:
+        raise ValueError("No action provided")
+
+    set_velocity(linear_velocity, angular_velocity)
+    time.sleep(duration / 100)
+    set_velocity(0, 0)
 
 
-# def main():
-#     on_command("forward")
-
-
-# main()
+gpt("https://thomasforbes.com/test.png")
