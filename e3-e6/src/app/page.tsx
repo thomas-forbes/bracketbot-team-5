@@ -13,6 +13,7 @@ export default function Home() {
   >([])
   const previousTime = useRef<number | null>(null)
   const stopRef = useRef(false)
+  const headingRef = useRef(0)
 
   const [linearVelocity, setLinearVelocity] = useState(0)
   // const [angularVelocity, setAngularVelocity] = useState(0)
@@ -27,10 +28,14 @@ export default function Home() {
     stopRef.current = false
     for (const { message, delay } of recording) {
       console.log(message, delay)
+      const data = JSON.parse(message)
+      const headingDiff = headingRef.current - data.heading
+      data.angular_velocity += headingDiff / 2
+      const newMessage = JSON.stringify(data)
 
       await new Promise((resolve) => setTimeout(resolve, delay))
-      client.current?.publish(TOPIC, message)
-      console.log('published', message)
+      client.current?.publish(TOPIC, newMessage)
+      console.log('published', newMessage)
 
       if (stopRef.current) break
     }
@@ -96,6 +101,7 @@ export default function Home() {
     const message = JSON.stringify({
       linear_velocity: linearVelocity,
       angular_velocity: angularVelocity,
+      heading: headingRef.current,
     })
     if (message === lastMessageRef.current) return
     lastMessageRef.current = message
@@ -145,7 +151,9 @@ export default function Home() {
     })
 
     client.current.on('message', function (topic, message) {
-      console.log('Message received:', message.toString())
+      if (topic === 'robot/heading') {
+        headingRef.current = Number(message.toString())
+      }
     })
   }, [])
 
