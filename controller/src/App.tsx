@@ -38,6 +38,7 @@ function Sliders({
           max={3}
           step={0.05}
           onValueChange={(value) => setLinearVelocity(value[0])}
+          onPointerUp={() => setLinearVelocity(0)}
         />
       </div>
 
@@ -107,7 +108,7 @@ function App() {
     }
     const message = JSON.stringify({
       linear_velocity: linearVelocity * -1,
-      angular_velocity: angularVelocity,
+      angular_velocity: angularVelocity * -1,
     });
     console.log(linearVelocity, angularVelocity);
 
