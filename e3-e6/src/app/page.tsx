@@ -1,4 +1,5 @@
 'use client'
+import { Slider } from '@/components/ui/slider'
 import mqtt from 'mqtt'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useInterval } from 'react-use'
@@ -156,44 +157,58 @@ export default function Home() {
       }
     })
   }, [])
-
   return (
-    <div className="h-screen w-full bg-black flex flex-col justify-center items-center gap-10">
-      <input
-        type="number"
-        className="bg-black"
-        value={angularVelocityMaxTimeMs}
-        onChange={(e) => setAngularVelocityMaxTimeMs(Number(e.target.value))}
+    <div className="min-h-screen w-screen bg-background flex items-center justify-center dark">
+      <Slider
+        value={[linearVelocity]}
+        min={-2}
+        max={2}
+        step={0.1}
+        onValueChange={(value) => setLinearVelocity(value[0])}
+        className="h-96"
       />
-      <button onClick={() => setIsRecording((prev) => !prev)}>
-        {isRecording ? 'stop' : 'record'}
-      </button>
-      <button onClick={play}>play</button>
-      <button onClick={() => (stopRef.current = true)}>stop</button>
-      <button
-        onClick={() => {
-          setRecording([])
-          setIsRecording(false)
-          stopRef.current = true
-          previousTime.current = null
-        }}
-      >
-        clear
-      </button>
-      <div className="flex flex-row gap-2 border border-white p-2 rounded-md max-w-md overflow-x-auto">
-        {recording.map(({ message, delay }, index) => (
-          <div key={index}>
-            {message} {(delay / 1000).toFixed(2)}s
-          </div>
-        ))}
-      </div>
-      <button
-        onClick={() => mqtt.connect(`ws://orange@orange-orange.local:9001`)}
-      >
-        connect
-      </button>
-      {/* <p>{linearVelocity}</p> */}
-      {/* <p>{calculateAngularVelocity()}</p> */}
+      <button onClick={() => setLinearVelocity(0)}>0</button>
     </div>
   )
 }
+//   return (
+//     <div className="h-screen w-full bg-black flex flex-col justify-center items-center gap-10">
+
+//       <input
+//         type="number"
+//         className="bg-black"
+//         value={angularVelocityMaxTimeMs}
+//         onChange={(e) => setAngularVelocityMaxTimeMs(Number(e.target.value))}
+//       />
+//       <button onClick={() => setIsRecording((prev) => !prev)}>
+//         {isRecording ? 'stop' : 'record'}
+//       </button>
+//       <button onClick={play}>play</button>
+//       <button onClick={() => (stopRef.current = true)}>stop</button>
+//       <button
+//         onClick={() => {
+//           setRecording([])
+//           setIsRecording(false)
+//           stopRef.current = true
+//           previousTime.current = null
+//         }}
+//       >
+//         clear
+//       </button>
+//       <div className="flex flex-row gap-2 border border-white p-2 rounded-md max-w-md overflow-x-auto">
+//         {recording.map(({ message, delay }, index) => (
+//           <div key={index}>
+//             {message} {(delay / 1000).toFixed(2)}s
+//           </div>
+//         ))}
+//       </div>
+//       <button
+//         onClick={() => mqtt.connect(`ws://orange@orange-orange.local:9001`)}
+//       >
+//         connect
+//       </button>
+//       {/* <p>{linearVelocity}</p> */}
+//       {/* <p>{calculateAngularVelocity()}</p> */}
+//     </div>
+//   )
+// }
