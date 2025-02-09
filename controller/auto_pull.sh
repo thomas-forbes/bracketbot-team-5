@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Change to the script's directory
-cd "$(dirname "$0")"
-
 echo "Starting auto-pull script..."
 echo "Press Ctrl+C to stop"
 
