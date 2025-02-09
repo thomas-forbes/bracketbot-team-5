@@ -32,11 +32,11 @@ function Sliders({
           0
         </Button>
         <Slider
-          className="h-56"
+          className="h-96"
           value={[linearVelocity]}
-          min={-2}
-          max={2}
-          step={0.1}
+          min={-4}
+          max={4}
+          step={0.05}
           onValueChange={(value) => setLinearVelocity(value[0])}
         />
       </div>
@@ -46,12 +46,13 @@ function Sliders({
           0
         </Button>
         <Slider
-          className="h-56"
+          className="h-96"
           value={[angularVelocity]}
           min={-2}
           max={2}
           step={0.05}
           onValueChange={(value) => setAngularVelocity(value[0])}
+          onPointerUp={() => setAngularVelocity(0)}
         />
       </div>
     </div>
