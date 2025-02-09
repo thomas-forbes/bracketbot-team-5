@@ -138,8 +138,6 @@ export function Joystick({
     };
   }, [isDragging, handleMove, handleEnd]);
 
-  console.log("fuck");
-
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
       <div

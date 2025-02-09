@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Joystick } from "@/components/ui/joystick";
 import mqtt from "mqtt";
@@ -74,30 +75,56 @@ function App() {
   return (
     <div className="flex h-svh w-svw flex-col items-center justify-between px-10 py-2">
       <Toaster />
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col items-stretch gap-2">
         <Badge
           variant={connected ? "default" : "destructive"}
           onClick={reconnect}
         >
           {connected ? "Connected" : "Disconnected"}
         </Badge>
-        <Input
-          type="number"
-          value={maxLinearVelocity}
-          onChange={(e) => setMaxLinearVelocity(Number(e.target.value))}
-        />
-        <Input
-          type="number"
-          value={maxAngularVelocity}
-          onChange={(e) => setMaxAngularVelocity(Number(e.target.value))}
-        />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setMaxLinearVelocity(maxLinearVelocity - 1)}
+          >
+            -
+          </Button>
+          <Input
+            type="number"
+            value={maxLinearVelocity}
+            onChange={(e) => setMaxLinearVelocity(Number(e.target.value))}
+          />
+          <Button
+            variant="outline"
+            onClick={() => setMaxLinearVelocity(maxLinearVelocity + 1)}
+          >
+            +
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setMaxAngularVelocity(maxAngularVelocity - 1)}
+          >
+            -
+          </Button>
+          <Input
+            type="number"
+            value={maxAngularVelocity}
+            onChange={(e) => setMaxAngularVelocity(Number(e.target.value))}
+          />
+          <Button
+            variant="outline"
+            onClick={() => setMaxAngularVelocity(maxAngularVelocity + 1)}
+          >
+            +
+          </Button>
+        </div>
       </div>
       <Joystick
         maxLinearVelocity={maxLinearVelocity}
         maxAngularVelocity={maxAngularVelocity}
-        linearVelocity={linearVelocity}
         setLinearVelocity={setLinearVelocity}
-        angularVelocity={angularVelocity}
         setAngularVelocity={setAngularVelocity}
       />
     </div>
