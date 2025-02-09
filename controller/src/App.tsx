@@ -64,7 +64,7 @@ function App() {
     }
     const message = JSON.stringify({
       linear_velocity: linearVelocity * -1,
-      angular_velocity: angularVelocity * -1,
+      angular_velocity: angularVelocity,
     });
     console.log(linearVelocity, angularVelocity);
 
