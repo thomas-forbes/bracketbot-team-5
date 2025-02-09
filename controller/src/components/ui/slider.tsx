@@ -9,14 +9,19 @@ const Slider = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
-    orientation="vertical"
+    orientation={props.orientation ?? "vertical"}
     className={cn(
       "relative flex h-full touch-none select-none flex-col items-center",
       className,
     )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-full w-10 grow overflow-hidden rounded-full bg-secondary">
+    <SliderPrimitive.Track
+      className={cn(
+        "relative grow overflow-hidden rounded-full bg-secondary",
+        props.orientation === "horizontal" ? "h-10 w-full" : "h-full w-10",
+      )}
+    >
       <SliderPrimitive.Range className="absolute w-full bg-primary" />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb className="block size-10 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />

@@ -26,7 +26,7 @@ function Sliders({
   setAngularVelocity: Setter<number>;
 }) {
   return (
-    <div className="flex h-full w-full max-w-2xl justify-between gap-4">
+    <div className="flex h-full w-full max-w-2xl flex-col items-center justify-center gap-4">
       <div className="flex items-center gap-4">
         <Button onClick={() => setLinearVelocity(0)} className="font-mono">
           0
@@ -34,26 +34,27 @@ function Sliders({
         <Slider
           className="h-96"
           value={[linearVelocity]}
-          min={-4}
-          max={4}
+          min={-3}
+          max={3}
           step={0.05}
           onValueChange={(value) => setLinearVelocity(value[0])}
         />
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button onClick={() => setAngularVelocity(0)} className="font-mono">
-          0
-        </Button>
+      <div className="flex flex-col items-center gap-4">
         <Slider
-          className="h-96"
+          orientation="horizontal"
+          className="w-80"
           value={[angularVelocity]}
-          min={-2}
-          max={2}
-          step={0.05}
+          min={-1}
+          max={1}
+          step={0.025}
           onValueChange={(value) => setAngularVelocity(value[0])}
           onPointerUp={() => setAngularVelocity(0)}
         />
+        <Button onClick={() => setAngularVelocity(0)} className="font-mono">
+          0
+        </Button>
       </div>
     </div>
   );
@@ -105,7 +106,7 @@ function App() {
       return;
     }
     const message = JSON.stringify({
-      linear_velocity: linearVelocity,
+      linear_velocity: linearVelocity * -1,
       angular_velocity: angularVelocity,
     });
     console.log(linearVelocity, angularVelocity);
