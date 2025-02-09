@@ -15,20 +15,20 @@ import { toast, Toaster } from "sonner";
 
 type Setter<T> = Dispatch<SetStateAction<T>>;
 
-const MAX_ANGULAR_VELOCITY = 2;
-
 function Sliders({
   linearVelocity,
   setLinearVelocity,
   angularVelocity,
   setAngularVelocity,
   maxLinearVelocity,
+  maxAngularVelocity,
 }: {
   linearVelocity: number;
   setLinearVelocity: Setter<number>;
   angularVelocity: number;
   setAngularVelocity: Setter<number>;
   maxLinearVelocity: number;
+  maxAngularVelocity: number;
 }) {
   const [linearVelocityProxy, setLinearVelocityProxy] = useState(0);
   useEffect(() => {
@@ -68,9 +68,9 @@ function Sliders({
           orientation="horizontal"
           className="w-80"
           value={[angularVelocity]}
-          min={-MAX_ANGULAR_VELOCITY}
-          max={MAX_ANGULAR_VELOCITY}
-          step={MAX_ANGULAR_VELOCITY / 12}
+          min={-maxAngularVelocity}
+          max={maxAngularVelocity}
+          step={maxAngularVelocity / 12}
           onValueChange={(value) => setAngularVelocity(value[0])}
           onPointerUp={() => setAngularVelocity(0)}
         />
@@ -121,7 +121,9 @@ function App() {
 
   const [linearVelocity, setLinearVelocity] = useState(0);
   const [angularVelocity, setAngularVelocity] = useState(0);
+
   const [maxLinearVelocity, setMaxLinearVelocity] = useState(3);
+  const [maxAngularVelocity, setMaxAngularVelocity] = useState(2);
 
   useEffect(() => {
     if (!client) {
@@ -152,9 +154,15 @@ function App() {
           value={maxLinearVelocity}
           onChange={(e) => setMaxLinearVelocity(Number(e.target.value))}
         />
+        <Input
+          type="number"
+          value={maxAngularVelocity}
+          onChange={(e) => setMaxAngularVelocity(Number(e.target.value))}
+        />
       </div>
       <Sliders
         maxLinearVelocity={maxLinearVelocity}
+        maxAngularVelocity={maxAngularVelocity}
         linearVelocity={linearVelocity}
         setLinearVelocity={setLinearVelocity}
         angularVelocity={angularVelocity}
