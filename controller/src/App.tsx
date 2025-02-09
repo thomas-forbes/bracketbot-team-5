@@ -26,13 +26,13 @@ function Sliders({
   setAngularVelocity: Setter<number>;
 }) {
   return (
-    <div className="flex w-full max-w-2xl justify-between gap-4">
+    <div className="flex h-full w-full max-w-2xl justify-between gap-4">
       <div className="flex items-center gap-4">
         <Button onClick={() => setLinearVelocity(0)} className="font-mono">
           0
         </Button>
         <Slider
-          className="h-96"
+          className="h-56"
           value={[linearVelocity]}
           min={-2}
           max={2}
@@ -46,7 +46,7 @@ function Sliders({
           0
         </Button>
         <Slider
-          className="h-96"
+          className="h-56"
           value={[angularVelocity]}
           min={-2}
           max={2}
@@ -113,7 +113,7 @@ function App() {
   }, [client, linearVelocity, angularVelocity]);
 
   return (
-    <div className="flex min-h-screen w-screen flex-col items-center justify-center gap-10 p-10">
+    <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 px-10">
       <Toaster />
       <div>
         <Badge
