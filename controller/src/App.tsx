@@ -15,6 +15,8 @@ import { toast, Toaster } from "sonner";
 
 type Setter<T> = Dispatch<SetStateAction<T>>;
 
+const MAX_ANGULAR_VELOCITY = 2;
+
 function Sliders({
   linearVelocity,
   setLinearVelocity,
@@ -66,9 +68,9 @@ function Sliders({
           orientation="horizontal"
           className="w-80"
           value={[angularVelocity]}
-          min={-1.2}
-          max={1.2}
-          step={0.1}
+          min={-MAX_ANGULAR_VELOCITY}
+          max={MAX_ANGULAR_VELOCITY}
+          step={MAX_ANGULAR_VELOCITY / 12}
           onValueChange={(value) => setAngularVelocity(value[0])}
           onPointerUp={() => setAngularVelocity(0)}
         />
