@@ -114,7 +114,7 @@ function App() {
   }, [client, linearVelocity, angularVelocity]);
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 px-10">
+    <div className="flex h-screen w-screen flex-col items-center justify-between px-10 py-2">
       <Toaster />
       <div>
         <Badge
