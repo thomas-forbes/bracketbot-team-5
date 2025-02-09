@@ -27,7 +27,7 @@ function Sliders({
 }) {
   return (
     <div className="flex w-full max-w-2xl justify-between gap-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Button onClick={() => setLinearVelocity(0)} className="font-mono">
           0
         </Button>
@@ -41,7 +41,7 @@ function Sliders({
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Button onClick={() => setAngularVelocity(0)} className="font-mono">
           0
         </Button>
@@ -107,6 +107,8 @@ function App() {
       linear_velocity: linearVelocity,
       angular_velocity: angularVelocity,
     });
+    console.log(linearVelocity, angularVelocity);
+
     client.current?.publish(TOPIC, message);
   }, [client, linearVelocity, angularVelocity]);
 
