@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
+import { Joystick } from "@/components/ui/joystick";
 import mqtt from "mqtt";
 import {
   useCallback,
@@ -13,74 +12,7 @@ import {
 } from "react";
 import { toast, Toaster } from "sonner";
 
-type Setter<T> = Dispatch<SetStateAction<T>>;
-
-function Sliders({
-  linearVelocity,
-  setLinearVelocity,
-  angularVelocity,
-  setAngularVelocity,
-  maxLinearVelocity,
-  maxAngularVelocity,
-}: {
-  linearVelocity: number;
-  setLinearVelocity: Setter<number>;
-  angularVelocity: number;
-  setAngularVelocity: Setter<number>;
-  maxLinearVelocity: number;
-  maxAngularVelocity: number;
-}) {
-  const [linearVelocityProxy, setLinearVelocityProxy] = useState(0);
-  useEffect(() => {
-    setLinearVelocity(
-      Math.pow(linearVelocityProxy, 2) *
-        maxLinearVelocity *
-        (linearVelocityProxy < 0 ? -1 : 1),
-    );
-  }, [linearVelocityProxy, maxLinearVelocity, setLinearVelocity]);
-
-  useEffect(() => {
-    setLinearVelocityProxy(
-      Math.sqrt(Math.abs(linearVelocity) / maxLinearVelocity) *
-        (linearVelocity < 0 ? -1 : 1),
-    );
-  }, [linearVelocity, maxLinearVelocity]);
-
-  return (
-    <div className="flex h-full w-full max-w-2xl flex-col items-center justify-center gap-4">
-      <div className="flex items-center gap-4">
-        <Button onClick={() => setLinearVelocity(0)} className="font-mono">
-          0
-        </Button>
-        <Slider
-          className="h-96"
-          value={[linearVelocityProxy]}
-          min={-1}
-          max={1}
-          step={0.1}
-          onValueChange={(value) => setLinearVelocityProxy(value[0])}
-          onPointerUp={() => setLinearVelocityProxy(0)}
-        />
-      </div>
-
-      <div className="flex flex-col items-center gap-4">
-        <Slider
-          orientation="horizontal"
-          className="w-80"
-          value={[angularVelocity]}
-          min={-maxAngularVelocity}
-          max={maxAngularVelocity}
-          step={maxAngularVelocity / 12}
-          onValueChange={(value) => setAngularVelocity(value[0])}
-          onPointerUp={() => setAngularVelocity(0)}
-        />
-        <Button onClick={() => setAngularVelocity(0)} className="font-mono">
-          0
-        </Button>
-      </div>
-    </div>
-  );
-}
+export type Setter<T> = Dispatch<SetStateAction<T>>;
 
 const HOST = "orange@orange-orange.local";
 const TOPIC = "robot/drive";
@@ -160,7 +92,7 @@ function App() {
           onChange={(e) => setMaxAngularVelocity(Number(e.target.value))}
         />
       </div>
-      <Sliders
+      <Joystick
         maxLinearVelocity={maxLinearVelocity}
         maxAngularVelocity={maxAngularVelocity}
         linearVelocity={linearVelocity}
