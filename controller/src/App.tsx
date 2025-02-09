@@ -50,7 +50,7 @@ function Sliders({
           value={[angularVelocity]}
           min={-2}
           max={2}
-          step={0.1}
+          step={0.05}
           onValueChange={(value) => setAngularVelocity(value[0])}
         />
       </div>
