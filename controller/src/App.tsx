@@ -80,7 +80,7 @@ function Sliders({
         <Slider
           orientation="horizontal"
           className="w-80"
-          value={[angularVelocity]}
+          value={[angularVelocityProxy]}
           min={-1}
           max={1}
           step={0.1}
