@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import mqtt from "mqtt";
 import {
@@ -14,50 +15,34 @@ import { toast, Toaster } from "sonner";
 
 type Setter<T> = Dispatch<SetStateAction<T>>;
 
-const MAX_LINEAR_VELOCITY = 3;
-
-const MAX_ANGULAR_VELOCITY = 1;
-
 function Sliders({
   linearVelocity,
   setLinearVelocity,
   angularVelocity,
   setAngularVelocity,
+  maxLinearVelocity,
 }: {
   linearVelocity: number;
   setLinearVelocity: Setter<number>;
   angularVelocity: number;
   setAngularVelocity: Setter<number>;
+  maxLinearVelocity: number;
 }) {
   const [linearVelocityProxy, setLinearVelocityProxy] = useState(0);
   useEffect(() => {
     setLinearVelocity(
       Math.pow(linearVelocityProxy, 2) *
-        MAX_LINEAR_VELOCITY *
+        maxLinearVelocity *
         (linearVelocityProxy < 0 ? -1 : 1),
     );
-  }, [linearVelocityProxy, setLinearVelocity]);
+  }, [linearVelocityProxy, maxLinearVelocity, setLinearVelocity]);
 
   useEffect(() => {
     setLinearVelocityProxy(
-      Math.sqrt(Math.abs(linearVelocity) / MAX_LINEAR_VELOCITY) *
+      Math.sqrt(Math.abs(linearVelocity) / maxLinearVelocity) *
         (linearVelocity < 0 ? -1 : 1),
     );
-  }, [linearVelocity]);
-
-  const [angularVelocityProxy, setAngularVelocityProxy] = useState(0);
-  useEffect(() => {
-    setAngularVelocity(
-      Math.pow(angularVelocityProxy, 2) * (angularVelocityProxy < 0 ? -1 : 1),
-    );
-  }, [angularVelocityProxy, setAngularVelocity]);
-
-  useEffect(() => {
-    setAngularVelocityProxy(
-      Math.sqrt(Math.abs(angularVelocity) / MAX_ANGULAR_VELOCITY) *
-        (angularVelocity < 0 ? -1 : 1),
-    );
-  }, [angularVelocity]);
+  }, [linearVelocity, maxLinearVelocity]);
 
   return (
     <div className="flex h-full w-full max-w-2xl flex-col items-center justify-center gap-4">
@@ -80,17 +65,14 @@ function Sliders({
         <Slider
           orientation="horizontal"
           className="w-80"
-          value={[angularVelocityProxy]}
-          min={-1}
-          max={1}
+          value={[angularVelocity]}
+          min={-1.2}
+          max={1.2}
           step={0.1}
-          onValueChange={(value) => setAngularVelocityProxy(value[0])}
-          onPointerUp={() => setAngularVelocityProxy(0)}
+          onValueChange={(value) => setAngularVelocity(value[0])}
+          onPointerUp={() => setAngularVelocity(0)}
         />
-        <Button
-          onClick={() => setAngularVelocityProxy(0)}
-          className="font-mono"
-        >
+        <Button onClick={() => setAngularVelocity(0)} className="font-mono">
           0
         </Button>
       </div>
@@ -137,6 +119,7 @@ function App() {
 
   const [linearVelocity, setLinearVelocity] = useState(0);
   const [angularVelocity, setAngularVelocity] = useState(0);
+  const [maxLinearVelocity, setMaxLinearVelocity] = useState(3);
 
   useEffect(() => {
     if (!client) {
@@ -155,15 +138,21 @@ function App() {
   return (
     <div className="flex h-svh w-svw flex-col items-center justify-between px-10 py-2">
       <Toaster />
-      <div>
+      <div className="flex items-center gap-2">
         <Badge
           variant={connected ? "default" : "destructive"}
           onClick={reconnect}
         >
           {connected ? "Connected" : "Disconnected"}
         </Badge>
+        <Input
+          type="number"
+          value={maxLinearVelocity}
+          onChange={(e) => setMaxLinearVelocity(Number(e.target.value))}
+        />
       </div>
       <Sliders
+        maxLinearVelocity={maxLinearVelocity}
         linearVelocity={linearVelocity}
         setLinearVelocity={setLinearVelocity}
         angularVelocity={angularVelocity}
