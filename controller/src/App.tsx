@@ -84,8 +84,8 @@ function App() {
         >
           {connected ? "Connected" : "Disconnected"}
         </Badge>
+        <Button onClick={() => setInvert(!invert)}>Invert</Button>
         <div className="flex gap-2">
-          <Button onClick={() => setInvert(!invert)}>Invert</Button>
           <Button
             variant="outline"
             onClick={() => setMaxLinearVelocity(maxLinearVelocity - 1)}
