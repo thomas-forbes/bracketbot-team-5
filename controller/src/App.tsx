@@ -15,8 +15,9 @@ import { toast, Toaster } from "sonner";
 
 export type Setter<T> = Dispatch<SetStateAction<T>>;
 
-const HOST = "orange@orange-orange.local";
+const HOST = "thomas@bracketbot.local";
 const TOPIC = "robot/drive";
+
 function useMqtt() {
   const client = useRef<mqtt.MqttClient | null>(null);
   const [connected, setConnected] = useState(false);
