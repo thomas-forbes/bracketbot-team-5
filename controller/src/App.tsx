@@ -11,6 +11,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useInterval } from "react-use";
 import { toast, Toaster } from "sonner";
 
 export type Setter<T> = Dispatch<SetStateAction<T>>;
@@ -50,29 +51,79 @@ function useMqtt() {
   return { client, connected, reconnect };
 }
 
+const ACCEL = 1;
+const DECEL = 0.5;
+const INTERVAL = 100;
+
 function App() {
   const { client, connected, reconnect } = useMqtt();
   const [invert, setInvert] = useState(false);
 
-  const [linearVelocity, setLinearVelocity] = useState(0);
-  const [angularVelocity, setAngularVelocity] = useState(0);
+  const [targetLinearVelocity, setTargetLinearVelocity] = useState(0);
+  const [targetAngularVelocity, setTargetAngularVelocity] = useState(0);
 
   const [maxLinearVelocity, setMaxLinearVelocity] = useState(3);
   const [maxAngularVelocity, setMaxAngularVelocity] = useState(2);
 
-  useEffect(() => {
-    if (!client) {
-      toast.error("No client");
-      return;
-    }
-    const message = JSON.stringify({
-      linear_velocity: linearVelocity * (invert ? -1 : 1),
-      angular_velocity: angularVelocity * (invert ? -1 : 1),
-    });
-    console.log(linearVelocity, angularVelocity);
+  const realVelocity = useRef({
+    linear: 0,
+    angular: 0,
+  });
 
-    client.current?.publish(TOPIC, message);
-  }, [client, linearVelocity, angularVelocity, invert]);
+  const lastMessageRef = useRef<string | null>(null);
+
+  useInterval(() => {
+    // Calculate new linear velocity
+    const linearDiff = targetLinearVelocity - realVelocity.current.linear;
+    if (Math.abs(linearDiff) < DECEL) {
+      realVelocity.current.linear = targetLinearVelocity;
+    } else if (linearDiff > 0) {
+      realVelocity.current.linear += ACCEL;
+    } else {
+      realVelocity.current.linear -= DECEL;
+    }
+
+    // Calculate new angular velocity
+    const angularDiff = targetAngularVelocity - realVelocity.current.angular;
+    if (Math.abs(angularDiff) < DECEL) {
+      realVelocity.current.angular = targetAngularVelocity;
+    } else if (angularDiff > 0) {
+      realVelocity.current.angular += ACCEL;
+    } else {
+      realVelocity.current.angular -= DECEL;
+    }
+
+    const message = JSON.stringify({
+      linear_velocity: realVelocity.current.linear * (invert ? -1 : 1),
+      angular_velocity: realVelocity.current.angular * (invert ? -1 : 1),
+    });
+
+    // Only send if message changed
+    if (message !== lastMessageRef.current) {
+      lastMessageRef.current = message;
+
+      if (!client) {
+        toast.error("No client");
+        return;
+      }
+
+      client.current?.publish(TOPIC, message);
+    }
+  }, INTERVAL);
+
+  // useEffect(() => {
+  //   if (!client) {
+  //     toast.error("No client");
+  //     return;
+  //   }
+  //   const message = JSON.stringify({
+  //     linear_velocity: targetLinearVelocity * (invert ? -1 : 1),
+  //     angular_velocity: targetAngularVelocity * (invert ? -1 : 1),
+  //   });
+  //   console.log(targetLinearVelocity, targetAngularVelocity);
+
+  //   client.current?.publish(TOPIC, message);
+  // }, [client, targetLinearVelocity, targetAngularVelocity, invert]);
 
   return (
     <div className="flex h-svh w-svw flex-col items-center justify-between px-10 py-2">
@@ -127,8 +178,8 @@ function App() {
       <Joystick
         maxLinearVelocity={maxLinearVelocity}
         maxAngularVelocity={maxAngularVelocity}
-        setLinearVelocity={setLinearVelocity}
-        setAngularVelocity={setAngularVelocity}
+        setLinearVelocity={setTargetLinearVelocity}
+        setAngularVelocity={setTargetAngularVelocity}
       />
     </div>
   );
