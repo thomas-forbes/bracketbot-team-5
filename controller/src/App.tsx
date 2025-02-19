@@ -52,6 +52,7 @@ function useMqtt() {
 
 function App() {
   const { client, connected, reconnect } = useMqtt();
+  const [invert, setInvert] = useState(false);
 
   const [linearVelocity, setLinearVelocity] = useState(0);
   const [angularVelocity, setAngularVelocity] = useState(0);
@@ -65,13 +66,13 @@ function App() {
       return;
     }
     const message = JSON.stringify({
-      linear_velocity: linearVelocity * -1,
-      angular_velocity: angularVelocity,
+      linear_velocity: linearVelocity * (invert ? -1 : 1),
+      angular_velocity: angularVelocity * (invert ? -1 : 1),
     });
     console.log(linearVelocity, angularVelocity);
 
     client.current?.publish(TOPIC, message);
-  }, [client, linearVelocity, angularVelocity]);
+  }, [client, linearVelocity, angularVelocity, invert]);
 
   return (
     <div className="flex h-svh w-svw flex-col items-center justify-between px-10 py-2">
@@ -84,6 +85,7 @@ function App() {
           {connected ? "Connected" : "Disconnected"}
         </Badge>
         <div className="flex gap-2">
+          <Button onClick={() => setInvert(!invert)}>Invert</Button>
           <Button
             variant="outline"
             onClick={() => setMaxLinearVelocity(maxLinearVelocity - 1)}
