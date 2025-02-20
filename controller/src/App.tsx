@@ -54,6 +54,7 @@ function useMqtt() {
 const ACCEL = 1;
 const DECEL = 0.5;
 const INTERVAL = 100;
+const INTERVAL_MULTIPLIER = INTERVAL / 1000;
 
 function App() {
   const { client, connected, reconnect } = useMqtt();
@@ -78,9 +79,9 @@ function App() {
     if (Math.abs(linearDiff) < DECEL) {
       realVelocity.current.linear = targetLinearVelocity;
     } else if (linearDiff > 0) {
-      realVelocity.current.linear += ACCEL;
+      realVelocity.current.linear += ACCEL * INTERVAL_MULTIPLIER;
     } else {
-      realVelocity.current.linear -= DECEL;
+      realVelocity.current.linear -= DECEL * INTERVAL_MULTIPLIER;
     }
 
     // Calculate new angular velocity
@@ -88,14 +89,14 @@ function App() {
     if (Math.abs(angularDiff) < DECEL) {
       realVelocity.current.angular = targetAngularVelocity;
     } else if (angularDiff > 0) {
-      realVelocity.current.angular += ACCEL;
+      realVelocity.current.angular += ACCEL * INTERVAL_MULTIPLIER;
     } else {
-      realVelocity.current.angular -= DECEL;
+      realVelocity.current.angular -= DECEL * INTERVAL_MULTIPLIER;
     }
 
     const message = JSON.stringify({
       linear_velocity: realVelocity.current.linear * (invert ? -1 : 1),
-      angular_velocity: realVelocity.current.angular * (invert ? -1 : 1),
+      angular_velocity: realVelocity.current.angular,
     });
 
     // Only send if message changed
@@ -107,9 +108,18 @@ function App() {
         return;
       }
 
+      console.log(message);
+
       client.current?.publish(TOPIC, message);
     }
   }, INTERVAL);
+
+  const zero = useCallback(() => {
+    setTargetLinearVelocity(0);
+    setTargetAngularVelocity(0);
+    realVelocity.current.linear = 0;
+    realVelocity.current.angular = 0;
+  }, []);
 
   // useEffect(() => {
   //   if (!client) {
@@ -136,6 +146,7 @@ function App() {
           {connected ? "Connected" : "Disconnected"}
         </Badge>
         <Button onClick={() => setInvert(!invert)}>Invert</Button>
+        <Button onClick={zero}>Zero</Button>
         <div className="flex gap-2">
           <Button
             variant="outline"
