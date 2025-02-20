@@ -51,8 +51,8 @@ function useMqtt() {
   return { client, connected, reconnect };
 }
 
-const ACCEL = 1;
-const DECEL = 0.5;
+const ACCEL = 10;
+const DECEL = 10;
 const INTERVAL = 100;
 const INTERVAL_MULTIPLIER = INTERVAL / 1000;
 
